@@ -36,27 +36,21 @@ def delete(product_id):
     return delete_product(product_id)
 
 
-# ✅ 6. Get products by brand
-@products_bp.route("/brand/<brand_id>", methods=["GET"])
-def brand_products(brand_id):
-    return get_products_by_brand(brand_id)
 
-
-
-# ✅ 7. Get products by category
+# ✅ 6. Get products by category
 @products_bp.route("/category/<category>", methods=["GET"])
 def product_by_category(category):
     return get_products_by_category(category)
 
 
 
-# ✅ 8. Search products (keyword, filters, pagination, sort)
+# ✅ 7. Search products (keyword, filters, pagination, sort)
 @products_bp.route("/search", methods=["GET"])
 def search():
     return search_products()
 
 
-# ✅ 9. Get recent products
+# ✅ 8. Get recent products
 @products_bp.route("/recent", methods=["GET"])
 def get_recent():
     return get_recent_products()

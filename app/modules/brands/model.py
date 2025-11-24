@@ -1,6 +1,7 @@
 from ...extensions import mongo
 from datetime import datetime
 from uuid import uuid4
+from ..utils.identifiers import get_brand_id, slugify
 
 class BrandModel:
     collection = lambda: mongo.db.brands
@@ -22,13 +23,15 @@ class BrandModel:
     @staticmethod
     def create(data):
         # Add default fields
-        data["brand_id"] = str(uuid4())
+        data["brand_id"] = get_brand_id()
+        data["slug"] = slugify(data["brand_name"])
         data["created_at"] = datetime.utcnow()
         data["updated_at"] = datetime.utcnow()
         data.setdefault("verification_status", "Pending")
 
         res = BrandModel.collection().insert_one(data)
-        return data
+        # Return the freshly stored document (with _id converted)
+        return BrandModel.get_by_id(data["brand_id"])
 
     @staticmethod
     def update(brand_id, update_data):

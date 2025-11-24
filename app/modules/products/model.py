@@ -1,6 +1,7 @@
 from ...extensions import mongo
 from datetime import datetime
 from uuid import uuid4
+from ..utils.identifiers import get_product_id, slugify
 
 
 class ProductModel:
@@ -11,7 +12,8 @@ class ProductModel:
     #  Create product
     @staticmethod
     def create(data):
-        data["product_id"] = str(uuid4())
+        data["product_slug"] = slugify(data["product_name"])
+        data["product_id"] = get_product_id()
         data["created_at"] = datetime.utcnow()
         data["updated_at"] = datetime.utcnow()
         coll = ProductModel.get_collection()
@@ -24,8 +26,19 @@ class ProductModel:
         coll = ProductModel.get_collection()
         filters = filters or {}
         cursor = coll.find(filters)
-        if sort:
-            cursor = cursor.sort(sort)
+         # Sorting logic
+        if sort == "newest" or sort is None:
+             cursor = cursor.sort("created_at", -1)
+        elif sort == "oldest":
+            cursor = cursor.sort("created_at", 1)
+        elif sort == "price_asc":
+            cursor = cursor.sort("price", 1)
+        elif sort == "price_desc":
+            cursor = cursor.sort("price", -1)
+        elif isinstance(sort, tuple):
+             # allows dynamic sort e.g. ("name", 1)
+            cursor = cursor.sort([sort])
+
         if skip:
             cursor = cursor.skip(skip)
         if limit:
@@ -41,7 +54,9 @@ class ProductModel:
     @staticmethod
     def update(product_id, update_data):
         update_data["updated_at"] = datetime.utcnow()
-        result = ProductModel.get_collection().update_one(
+        if "product_name" in update_data:
+            update_data["product_slug"] = slugify(update_data["product_name"])
+            result = ProductModel.get_collection().update_one(
             {"product_id": product_id},
             {"$set": update_data}
         )
@@ -123,7 +138,7 @@ class ProductModel:
             if s in sort_map:
                 sort_spec.extend(sort_map[s])
         if not sort_spec:
-            sort_spec = [("created_at", -1)]  # ✅ Fixed
+            sort_spec = [("created_at", -1)] 
 
         total = coll.count_documents(filters)
         cursor = coll.find(filters).sort(sort_spec).skip(skip).limit(limit)

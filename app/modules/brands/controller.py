@@ -2,6 +2,10 @@ from flask import request, jsonify
 from marshmallow import ValidationError
 from .schema import BrandSchema
 from .model import BrandModel
+import logging
+from ..utils.identifiers import slugify
+
+logger = logging.getLogger(__name__)
 
 brand_schema = BrandSchema()
 
@@ -14,24 +18,30 @@ def add_brand():
 
         # Validate input using Marshmallow
         validated = brand_schema.load(data)
-    
+
         # Optional: check duplicate email
         existing = BrandModel.collection().find_one({"email": validated["email"]})
         if existing:
             return jsonify({"error": "Email already registered"}), 400
+        slug = slugify(data["brand_name"])
+        existingSlug = BrandModel.collection().find_one({"slug":slug})
+        if existingSlug:
+            logger.error("Name exists already")
+            return jsonify({"error": "Brand name already exists"}),400
 
         # Create new brand
         brand = BrandModel.create(validated)
-        print(brand)
+        logger.info("Brand created: %s", brand.get("brand_id"))
         return jsonify({
             "message": "Brand created successfully",
-            "brand": brand_schema.dump(brand)
+            "brand": brand
         }), 201
 
     except ValidationError as err:
+        logger.debug("Validation error while creating brand: %s", err.messages)
         return jsonify({"error": err.messages}), 400
-    except Exception as e:
-        print("Error:", e)
+    except Exception:
+        logger.exception("Unexpected error while creating brand")
         return jsonify({"error": "Something went wrong"}), 500
 
 
@@ -45,13 +55,14 @@ def get_brands():
             {
                 "brand_id": b.get("brand_id"),
                 "name": b.get("brand_name"),
-                "logo": b.get("brand_logo")
+                "logo": b.get("brand_logo"),
+                "slug": b.get("slug")
             }
             for b in brands
         ]
         return jsonify(simplified_brands), 200
-    except Exception as e:
-        print("Error:", e)
+    except Exception:
+        logger.exception("Failed to fetch brands")
         return jsonify({"error": "Failed to fetch brands"}), 500
 
 
@@ -77,13 +88,17 @@ def update_brand(brand_id):
             "brand": brand_schema.dump(updated)
         }), 200
 
-    except Exception as e:
-        print("Error:", e)
+    except Exception:
+        logger.exception("Update failed for brand: %s", brand_id)
         return jsonify({"error": "Update failed"}), 500
 
 
 def delete_brand(brand_id):
-    success = BrandModel.delete(brand_id)
-    if not success:
-        return jsonify({"error": "Brand not found"}), 404
-    return jsonify({"message": "Brand deleted successfully"}), 200
+    try:
+        success = BrandModel.delete(brand_id)
+        if not success:
+            return jsonify({"error": "Brand not found"}), 404
+        return jsonify({"message": "Brand deleted successfully"}), 200
+    except Exception:
+        logger.exception("Failed to delete brand: %s", brand_id)
+        return jsonify({"error": "Deletion failed"}), 500
