@@ -5,6 +5,7 @@ from .controller import (
     get_brand_by_id,
     update_brand,
     delete_brand,
+    bulk_create_brands
 )
 from ..products.controller import get_products_by_brand
 
@@ -22,6 +23,9 @@ def new_brand():
 def list_brands():
     return get_brands()
 
+@brands_bp.route("/bulk-write", methods= ["POST"])
+def write_brands():
+    return bulk_create_brands()
 
 # GET: Details of a brand by id
 @brands_bp.route("/<id>", methods=["GET"])

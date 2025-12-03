@@ -4,6 +4,7 @@ from .extensions import mongo, cors
 from dotenv import load_dotenv
 from .modules.brands.routes import brands_bp
 from .modules.products.routes import products_bp
+from .modules.recommendations.controller import recommendations_bp
 
 def create_app(config_name="development"):
     
@@ -31,6 +32,7 @@ def create_app(config_name="development"):
 
     app.register_blueprint(brands_bp, url_prefix="/api/brands")
     app.register_blueprint(products_bp, url_prefix="/api/products")
+    app.register_blueprint(recommendations_bp, url_prefix="/api/recommendations")
     
 
     @app.route("/")

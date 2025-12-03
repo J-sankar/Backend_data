@@ -2,6 +2,7 @@ from ...extensions import mongo
 from datetime import datetime
 from uuid import uuid4
 from ..utils.identifiers import get_product_id, slugify
+from ..recommendations.strategies.product_similarity import TFIDFRecommender
 
 
 class ProductModel:
@@ -48,7 +49,10 @@ class ProductModel:
     # Get product by ID
     @staticmethod
     def get_by_id(product_id):
+        if not product_id:
+            return None
         return ProductModel.get_collection().find_one({"product_id": product_id})
+
 
     # Update product
     @staticmethod

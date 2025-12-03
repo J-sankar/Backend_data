@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 
 from marshmallow import ValidationError
-from .controller import create_product,get_all_products,get_product_by_id,update_product,delete_product, get_recent_products,search_products,get_products_by_category,get_products_by_brand
+from .controller import create_product,get_all_products,get_product_by_id,update_product,delete_product, get_recent_products,search_products,get_products_by_category,get_products_by_brand, bulk_create_products
 
 products_bp = Blueprint("products", __name__)
 
@@ -11,6 +11,11 @@ products_bp = Blueprint("products", __name__)
 @products_bp.route("/new", methods=["POST"])
 def add_product():
     return create_product()
+
+# ✅ bulk write products
+@products_bp.route("/bulk-write", methods=["POST"])
+def add_products():
+    return bulk_create_products()
 
 
 # ✅ 2. Get all products (with filters & pagination)

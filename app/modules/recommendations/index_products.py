@@ -1,0 +1,15 @@
+import logging
+from ...extensions import mongo
+from .strategies.product_similarity import TFIDFRecommender
+from app import create_app
+
+def build_index():
+    app = create_app()
+    recommender = TFIDFRecommender()
+    count = recommender.fit_and_store_vectors()
+    logging.info(f"Indexed {count} products.")
+    print(f"Indexed {count} products.")
+    return count
+
+if __name__ == '__main__':
+    build_index()
