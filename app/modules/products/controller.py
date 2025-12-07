@@ -7,7 +7,7 @@ from .schema import ProductSchema
 from .model import ProductModel
 from .responses.productListResponse import ProductListResponseSchema
 from .responses.productDetailsResponse import ProductDetailResponseSchema
-from ..recommendations.strategies.product_similarity import TFIDFRecommender
+from ..recommendations.strategies.product_similarity import ProductSimilarityRecommendor
 from ..utils.identifiers import slugify, get_product_id
 from pymongo import UpdateOne
 from pymongo.errors import BulkWriteError
@@ -15,7 +15,7 @@ from pymongo.errors import BulkWriteError
 product_schema = ProductSchema()
 product_list_schema = ProductListResponseSchema(many=True)
 product_details_schema = ProductDetailResponseSchema()
-rec = TFIDFRecommender()
+rec = ProductSimilarityRecommendor()
 logger = logging.getLogger(__name__)
 
 # ➕ Create new product
